@@ -16,7 +16,9 @@ Another way to talk to your inverters is to use Modbus RS-485.  There is an RS-4
 
 At the other end of the cat5 cable you need to plug in to something which talks Modbus.  I have found the Elfin EW11A to be easy to use and so far very reliable.  They look like this:
 
-<picture goes here>
+![image](https://user-images.githubusercontent.com/6552931/212492135-d448d79f-f914-47ad-84ce-a15d6241f465.png)
+
+
 
 You can buy them on Ali Express for about £10 inc tax & delivery.  https://www.aliexpress.com/item/1005001273331424.html
 
