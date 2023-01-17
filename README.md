@@ -26,13 +26,36 @@ Alternatively you could use an ESP8266 or ESP32 and an RS-485 converter.
 
 You will also need a suitable power supply.
 
-I've got +/- volts from the PSU going to pins 7 & 8 on a cat 5 plug.
-Pins 5 & 6 from the same cat5 plug going to a length of cat5 on a different pair.
+I've got +/- volts from the PSU going to pins 7 & 8 on a cat 5 plug.  I used the brown pair.
+Pins 5 & 6 from the same cat5 plug going to a length of cat5 on a different pair to the power.  I used the orange pair.
 That pair goes to another cat5 plug on pins 1 & 5 which plugs in to the inverter.
 
 I'll post a proper diagram later.
 
 Once you've got it connected up and configured the Elfin EW11 (instructions to follow) you can easily query them from Node Red and do whatever you like with the data.
+
+
+# The SPH inverter
+
+## Modbus RTU Registers
+
+The SPH line of inverters provide Modbus RTU registers that you can read (and in some cases write) to gather information about the performance and settings of the inverter.  There is a rich function set and you can read what each register does in the RTU protocol PDF document in this repo.
+
+### 03 Register Range
+The 03 registers are called "holding" registers.  These typically hold values for configuration like options and system settings.  You can write to a lot of these registers to change settings.  For example, you can switch the inverter on and off, set the time, change the LCD language.  There are also a lot of factory configured low level configuration options available.  I'm staying well away from these until I understand what they do. 
+
+The SPH inverter supports registers:
+ - 0 to 124
+ - 1000 to 1124
+
+### 04 Register Range
+The 04 registers are called "input" registers.  These typically hold values referring to the performance of the inverter, how much PV power is being produce, what the voltages are, etc.  These are read only.
+
+The SPH inverter supports registers:
+ - 0 to 124
+ - 1000 to 1124
+ - 1125 to 1249
+
 
 
 # Automation
