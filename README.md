@@ -73,7 +73,7 @@ To follow
 To follow
 
 # Registers of interest
-I will fill this out later.  In the meantime, look at the functions in the Node Red flow for the registers I've found useful.
+See the included [registers.md](registers.md) file for a list of useful registers.
 
 # Resources
 
