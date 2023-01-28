@@ -115,7 +115,7 @@
         "unitid": "1",
         "dataType": "InputRegister",
         "adr": "1000",
-        "quantity": "125",
+        "quantity": "124",
         "rate": "30",
         "rateUnit": "s",
         "delayOnStart": false,
@@ -214,7 +214,7 @@
         "type": "function",
         "z": "f0197a95.05059",
         "name": "Process Input Regs 1000-1124",
-        "func": "\nfunction readDoubleReg(r1, multiplier = 1) {\n    // Reads register r1 AND r1+1 from the msg.payload\n    // Returns a rounded number \n    var value = (msg.payload[r1] << 16 | msg.payload[r1 + 1]);\n    value = value * multiplier;\n    return Math.trunc(value);\n}\n\nfunction round(num) {\n    return Math.round(num * 10) / 10;\n}\n\nvar newMsg = msg;\nvar newPayload = {};\n\n// Battery Charging Config in volts\n// Not sure I want to mess with this\nnewPayload['vbatStopCharge'] = msg.payload[5];\nnewPayload['vbatStopDischarge'] = msg.payload[6];\n\n// Priority Mode - 0 = load, 1 = Batt, 2 = Grid\nnewPayload['priorityMode'] = msg.payload[44];\n\nnewPayload['exportToGridRatePercent'] = msg.payload[70];\nnewPayload['exportToGridStopDischargePercent'] = msg.payload[71];\n\n// 1080 - 1088 : time blocks for grid first\n// 1090 - 1108 : time blocks for batt first\n// 1110 - 1118 : time blocks for load first\n\nnewPayload['acChargeEnabled'] = msg.payload[92];\n\nnewMsg['topic'] = \"solar/test\";\nnewMsg['registers'] = newPayload;\nreturn newMsg;\n",
+        "func": "\nfunction readDoubleReg(r1, multiplier = 1) {\n    // Reads register r1 AND r1+1 from the msg.payload\n    // Returns a rounded number \n    var value = (msg.payload[r1] << 16 | msg.payload[r1 + 1]);\n    value = value * multiplier;\n    return Math.trunc(value);\n}\n\nfunction round(num) {\n    return Math.round(num * 10) / 10;\n}\n\nvar newMsg = msg;\nvar newPayload = {};\n\n// Battery Charging Config in volts\n// Not sure I want to mess with this\nnewPayload['vbatStopCharge'] = msg.payload[5];\nnewPayload['vbatStopDischarge'] = msg.payload[6];\n\n// Priority Mode - 0 = load, 1 = Batt, 2 = Grid\nnewPayload['priorityMode'] = msg.payload[44];\n\nnewPayload['exportToGridRatePercent'] = msg.payload[70];\nnewPayload['exportToGridStopDischargePercent'] = msg.payload[71];\n\n// 1080 - 1088 : time blocks for grid first\n// 1090 - 1108 : time blocks for batt first\n// 1110 - 1118 : time blocks for load first\n\nnewPayload['batFirstChargeRate'] = msg.payload[90];\nnewPayload['batFirstStopChargeSOC'] = msg.payload[91];\n// I think this is what we set to                 ^^\n// stop AC charging at this SOC.\n// BattFirst needs to have a slot enabled in order\n// to charge off AC over night.\nnewPayload['acChargeEnabled'] = msg.payload[92];\n\nnewMsg['topic'] = \"solar/test\";\nnewMsg['registers'] = newPayload;\nreturn newMsg;\n",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -531,14 +531,606 @@
         ]
     },
     {
+        "id": "560a91cf64a8324f",
+        "type": "inject",
+        "z": "f0197a95.05059",
+        "name": "Check time",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "3600",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "0",
+        "payloadType": "str",
+        "x": 110,
+        "y": 700,
+        "wires": [
+            [
+                "5b8651d148d5d586"
+            ]
+        ]
+    },
+    {
+        "id": "76c4ab9d4eb9fd0f",
+        "type": "function",
+        "z": "f0197a95.05059",
+        "name": "Time Difference",
+        "func": "const today = new Date();\n\nvar year = today.getFullYear();\nvar month = today.getMonth() + 1;\nvar day = today.getDate();\nvar hour = today.getHours();\nvar min = today.getMinutes();\nvar sec = today.getSeconds();\nvar dow = today.getDay();\n\nvar inverterYear = msg.payload[0];\nvar inverterMonth = msg.payload[1] - 1; // Sigh.  \"Make it look like Java\"\nvar inverterDay = msg.payload[2];\nvar inverterHour = msg.payload[3];\nvar inverterMin = msg.payload[4];\nvar inverterSec = msg.payload[5];\nvar inverterDow = msg.payload[6];\n\nvar inverterDate = new Date(Date.UTC(inverterYear, inverterMonth, inverterDay, inverterHour, inverterMin, inverterSec))\nvar diff = Math.abs(inverterDate.getTime() - today.getTime()) / 1000;\nvar timeArray = [];\n\nif (diff > 150) { // More than 2.5 mins out\n    timeArray = [year, month, day, hour, min, sec];\n}\n\nvar new_msg = {}\nnew_msg['inverterDate'] = inverterDate;\nnew_msg['sysDate'] = today;\nnew_msg['diff'] = diff;\n\nif (Array.isArray(timeArray) && timeArray.length) {\n    new_msg['payload'] = timeArray;\n} else {\n    new_msg['payload'] = null;\n}\n\nreturn new_msg;\n\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 700,
+        "wires": [
+            [
+                "92a776d5b4f4ad83"
+            ]
+        ]
+    },
+    {
+        "id": "218598319ba7ee35",
+        "type": "debug",
+        "z": "f0197a95.05059",
+        "name": "debug 19",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 960,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "5b8651d148d5d586",
+        "type": "modbus-getter",
+        "z": "f0197a95.05059",
+        "name": "Get Time",
+        "showStatusActivities": false,
+        "showErrors": false,
+        "showWarnings": true,
+        "logIOActivities": false,
+        "unitid": "1",
+        "dataType": "HoldingRegister",
+        "adr": "45",
+        "quantity": "7",
+        "server": "40f20c7f.13a934",
+        "useIOFile": false,
+        "ioFile": "",
+        "useIOForPayload": false,
+        "emptyMsgOnFail": false,
+        "keepMsgProperties": false,
+        "delayOnStart": false,
+        "startDelayTime": "",
+        "x": 260,
+        "y": 700,
+        "wires": [
+            [
+                "76c4ab9d4eb9fd0f"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "92a776d5b4f4ad83",
+        "type": "switch",
+        "z": "f0197a95.05059",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "nnull"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 610,
+        "y": 700,
+        "wires": [
+            [
+                "e1e08134b9df29e7"
+            ]
+        ]
+    },
+    {
+        "id": "e1e08134b9df29e7",
+        "type": "modbus-write",
+        "z": "f0197a95.05059",
+        "name": "Write Time",
+        "showStatusActivities": false,
+        "showErrors": false,
+        "showWarnings": true,
+        "unitid": "1",
+        "dataType": "MHoldingRegisters",
+        "adr": "45",
+        "quantity": "6",
+        "server": "40f20c7f.13a934",
+        "emptyMsgOnFail": false,
+        "keepMsgProperties": false,
+        "delayOnStart": false,
+        "startDelayTime": "",
+        "x": 770,
+        "y": 700,
+        "wires": [
+            [],
+            [
+                "218598319ba7ee35"
+            ]
+        ]
+    },
+    {
+        "id": "2fa9026deb22fabe",
+        "type": "inject",
+        "z": "f0197a95.05059",
+        "name": "Check time",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "3600",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "0",
+        "payloadType": "str",
+        "x": 110,
+        "y": 760,
+        "wires": [
+            [
+                "f9b893c051e5aa95"
+            ]
+        ]
+    },
+    {
+        "id": "f73775560dc4f584",
+        "type": "function",
+        "z": "f0197a95.05059",
+        "name": "Time Difference",
+        "func": "const today = new Date();\n\nvar year = today.getFullYear();\nvar month = today.getMonth() + 1;\nvar day = today.getDate();\nvar hour = today.getHours();\nvar min = today.getMinutes();\nvar sec = today.getSeconds();\nvar dow = today.getDay();\n\nvar inverterYear = msg.payload[0];\nvar inverterMonth = msg.payload[1] - 1; // Sigh.  \"Make it look like Java\"\nvar inverterDay = msg.payload[2];\nvar inverterHour = msg.payload[3];\nvar inverterMin = msg.payload[4];\nvar inverterSec = msg.payload[5];\nvar inverterDow = msg.payload[6];\n\nvar inverterDate = new Date(Date.UTC(inverterYear, inverterMonth, inverterDay, inverterHour, inverterMin, inverterSec))\nvar diff = Math.abs(inverterDate.getTime() - today.getTime()) / 1000;\nvar timeArray = [];\n\nif (diff > 150) { // More than 2.5 mins out\n    timeArray = [year, month, day, hour, min, sec];\n}\n\nvar new_msg = {}\nnew_msg['inverterDate'] = inverterDate;\nnew_msg['sysDate'] = today;\nnew_msg['diff'] = diff;\n\nif (Array.isArray(timeArray) && timeArray.length) {\n    new_msg['payload'] = timeArray;\n} else {\n    new_msg['payload'] = null;\n}\n\nreturn new_msg;\n\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 760,
+        "wires": [
+            [
+                "87f52814ea62fccf"
+            ]
+        ]
+    },
+    {
+        "id": "2af1b3ed67da7854",
+        "type": "debug",
+        "z": "f0197a95.05059",
+        "name": "debug 21",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 960,
+        "y": 760,
+        "wires": []
+    },
+    {
+        "id": "f9b893c051e5aa95",
+        "type": "modbus-getter",
+        "z": "f0197a95.05059",
+        "name": "Get Time",
+        "showStatusActivities": false,
+        "showErrors": false,
+        "showWarnings": true,
+        "logIOActivities": false,
+        "unitid": "1",
+        "dataType": "HoldingRegister",
+        "adr": "45",
+        "quantity": "7",
+        "server": "36ae6849979c3179",
+        "useIOFile": false,
+        "ioFile": "",
+        "useIOForPayload": false,
+        "emptyMsgOnFail": false,
+        "keepMsgProperties": false,
+        "delayOnStart": false,
+        "startDelayTime": "",
+        "x": 260,
+        "y": 760,
+        "wires": [
+            [
+                "f73775560dc4f584"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "87f52814ea62fccf",
+        "type": "switch",
+        "z": "f0197a95.05059",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "nnull"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 610,
+        "y": 760,
+        "wires": [
+            [
+                "0b712396ce9d229c"
+            ]
+        ]
+    },
+    {
+        "id": "0b712396ce9d229c",
+        "type": "modbus-write",
+        "z": "f0197a95.05059",
+        "name": "Write Time",
+        "showStatusActivities": false,
+        "showErrors": false,
+        "showWarnings": true,
+        "unitid": "1",
+        "dataType": "MHoldingRegisters",
+        "adr": "45",
+        "quantity": "6",
+        "server": "36ae6849979c3179",
+        "emptyMsgOnFail": false,
+        "keepMsgProperties": false,
+        "delayOnStart": false,
+        "startDelayTime": "",
+        "x": 770,
+        "y": 760,
+        "wires": [
+            [],
+            [
+                "2af1b3ed67da7854"
+            ]
+        ]
+    },
+    {
+        "id": "149e2a968e10c463",
+        "type": "api-current-state",
+        "z": "f0197a95.05059",
+        "name": "",
+        "server": "9b07d2455de736b9",
+        "version": 3,
+        "outputs": 1,
+        "halt_if": "",
+        "halt_if_type": "str",
+        "halt_if_compare": "is",
+        "entity_id": "sensor.energy_production_tomorrow",
+        "state_type": "str",
+        "blockInputOverrides": false,
+        "outputProperties": [
+            {
+                "property": "payload",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "entityState"
+            },
+            {
+                "property": "data",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "entity"
+            }
+        ],
+        "for": "0",
+        "forType": "num",
+        "forUnits": "minutes",
+        "override_topic": false,
+        "state_location": "payload",
+        "override_payload": "msg",
+        "entity_location": "data",
+        "override_data": "msg",
+        "x": 470,
+        "y": 1000,
+        "wires": [
+            [
+                "d44bc77b0995cae0",
+                "f0132b11bb683a22"
+            ]
+        ]
+    },
+    {
+        "id": "d44bc77b0995cae0",
+        "type": "debug",
+        "z": "f0197a95.05059",
+        "name": "debug 22",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 900,
+        "y": 1000,
+        "wires": []
+    },
+    {
+        "id": "bf5d90a7cd5f665a",
+        "type": "inject",
+        "z": "f0197a95.05059",
+        "name": "Set battery AC charge limit",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 1000,
+        "wires": [
+            [
+                "149e2a968e10c463"
+            ]
+        ]
+    },
+    {
+        "id": "f0132b11bb683a22",
+        "type": "function",
+        "z": "f0197a95.05059",
+        "name": "function 1",
+        "func": "// The Home Assistant node pulls from the Solar\n// prediction integration for tomorrow's expected\n// solar energy production.  I then set the AC charge\n// limit so that I can try and dump as much of the\n// free energy in to the battery as possible but\n// at the same time try and maximize charging on the\n// cheap over night electricity.\n// Not sure if this will work at all, but worth a shot.\n\nvar generateTomorrow = msg.payload;\nvar batteryCapacity = 13; // kWh\nvar chargeToPercent = 100;\nvar tickOverPower = 4; // need 4kW just to get to tomorrow\nvar reservePower = 4; // Keep 4kW just in case?\n\nvar diff = (generateTomorrow / batteryCapacity) * 100;\n\nif (diff < 100) {\n  // Battery cannot be fully charged tomorrow\n  // Fill up to what should be enough to allow it\n  // to fill from solar as much as possible.\n\n  chargeToPercent = 50;\n  // Too hard to work out.  Too tired.\n  \n} else if (diff >= 100) {\n    // Tomorrow will produce more power than\n    // the battery can take, so what do we do?\n    // Try and charge enough to get through the\n    // peak rate in the morning before the sun\n    // gets up.\n    // Which is 0.8 kWh * 5 hours\n    // = 4kWh = 31%\n    chargeToPercent = 31;\n}\nmsg.payload = {};\nmsg.payload['diff'] = diff;\nmsg.payload['chargeToPercent'] = chargeToPercent;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 1120,
+        "wires": [
+            [
+                "d44bc77b0995cae0"
+            ]
+        ]
+    },
+    {
+        "id": "65c45528710288b3",
+        "type": "modbus-flex-write",
+        "z": "f0197a95.05059",
+        "name": "Flex Writer Inverter 1",
+        "showStatusActivities": true,
+        "showErrors": true,
+        "showWarnings": true,
+        "server": "40f20c7f.13a934",
+        "emptyMsgOnFail": false,
+        "keepMsgProperties": true,
+        "delayOnStart": false,
+        "startDelayTime": "",
+        "x": 780,
+        "y": 1360,
+        "wires": [
+            [],
+            [
+                "658d67f7623bbb75"
+            ]
+        ]
+    },
+    {
+        "id": "be034de006e87a3b",
+        "type": "function",
+        "z": "f0197a95.05059",
+        "name": "Set Priority Mode",
+        "func": "var new_msg = {};\nvar payload = {};\npayload['value'] = msg.payload;\npayload['fc'] = 6;\npayload['unitid'] = 1;\npayload['quantity'] = 1;\npayload['address'] = 1044;  // Priority\n// 0 = load, 1 = batt, 2 = grid export\n\nnew_msg['payload'] = payload;\nreturn new_msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 1300,
+        "wires": [
+            [
+                "65c45528710288b3"
+            ]
+        ]
+    },
+    {
+        "id": "658d67f7623bbb75",
+        "type": "debug",
+        "z": "f0197a95.05059",
+        "name": "debug 23",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1000,
+        "y": 1360,
+        "wires": []
+    },
+    {
+        "id": "21ed5282d28365db",
+        "type": "inject",
+        "z": "f0197a95.05059",
+        "name": "Load Priority",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "0",
+        "payloadType": "num",
+        "x": 190,
+        "y": 1260,
+        "wires": [
+            [
+                "be034de006e87a3b"
+            ]
+        ]
+    },
+    {
+        "id": "ee847d6cd7bf6f28",
+        "type": "inject",
+        "z": "f0197a95.05059",
+        "name": "Battery Priority",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "0",
+        "payloadType": "num",
+        "x": 200,
+        "y": 1300,
+        "wires": [
+            [
+                "be034de006e87a3b"
+            ]
+        ]
+    },
+    {
+        "id": "c764ee2c89b69cc4",
+        "type": "inject",
+        "z": "f0197a95.05059",
+        "name": "Export Priority",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "0",
+        "payloadType": "num",
+        "x": 190,
+        "y": 1340,
+        "wires": [
+            [
+                "be034de006e87a3b"
+            ]
+        ]
+    },
+    {
+        "id": "1b4e5d501bd3f961",
+        "type": "function",
+        "z": "f0197a95.05059",
+        "name": "Set Battery Charge Max",
+        "func": "var new_msg = {};\nvar payload = {};\npayload['value'] = msg.payload;\npayload['fc'] = 6;\npayload['unitid'] = 1;\npayload['address'] = 1091;  // Priority\n// 0 = load, 1 = batt, 2 = grid export\npayload['unitid'] = 1;\npayload['quantity'] = 1;\nnew_msg['payload'] = payload;\n\nreturn new_msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 510,
+        "y": 1420,
+        "wires": [
+            [
+                "65c45528710288b3"
+            ]
+        ]
+    },
+    {
+        "id": "064f6a710418bdc5",
+        "type": "inject",
+        "z": "f0197a95.05059",
+        "name": "Set 50% Max Battery Charge",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "50",
+        "payloadType": "num",
+        "x": 220,
+        "y": 1400,
+        "wires": [
+            [
+                "1b4e5d501bd3f961"
+            ]
+        ]
+    },
+    {
+        "id": "b3965f3c109577c8",
+        "type": "inject",
+        "z": "f0197a95.05059",
+        "name": "Set 100% Max Battery Charge",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "100",
+        "payloadType": "num",
+        "x": 220,
+        "y": 1460,
+        "wires": [
+            [
+                "1b4e5d501bd3f961"
+            ]
+        ]
+    },
+    {
         "id": "40f20c7f.13a934",
         "type": "modbus-client",
         "name": "Inverter 1 EW11-1",
         "clienttype": "tcp",
         "bufferCommands": true,
         "stateLogEnabled": false,
-        "queueLogEnabled": false,
-        "failureLogEnabled": false,
+        "queueLogEnabled": true,
+        "failureLogEnabled": true,
         "tcpHost": "ew11-1.whizzy.org",
         "tcpPort": "502",
         "tcpType": "DEFAULT",
@@ -552,9 +1144,9 @@
         "serialAsciiResponseStartDelimiter": "",
         "unit_id": 1,
         "commandDelay": 1000,
-        "clientTimeout": 2000,
+        "clientTimeout": 3000,
         "reconnectOnTimeout": true,
-        "reconnectTimeout": 5000,
+        "reconnectTimeout": 2000,
         "parallelUnitIdsAllowed": false
     },
     {
@@ -604,13 +1196,36 @@
         "serialParity": "none",
         "serialConnectionDelay": "100",
         "serialAsciiResponseStartDelimiter": "0x3A",
-        "unit_id": "1",
-        "commandDelay": "1000",
-        "clientTimeout": "3000",
+        "unit_id": 1,
+        "commandDelay": 1000,
+        "clientTimeout": 3000,
         "reconnectOnTimeout": true,
-        "reconnectTimeout": "2000",
+        "reconnectTimeout": 2000,
         "parallelUnitIdsAllowed": true,
         "showWarnings": true,
         "showLogs": true
+    },
+    {
+        "id": "9b07d2455de736b9",
+        "type": "server",
+        "name": "Home Assistant",
+        "version": 5,
+        "addon": false,
+        "rejectUnauthorizedCerts": false,
+        "ha_boolean": "y|yes|true|on|home|open",
+        "connectionDelay": true,
+        "cacheJson": true,
+        "heartbeat": false,
+        "heartbeatInterval": "30",
+        "areaSelector": "friendlyName",
+        "deviceSelector": "friendlyName",
+        "entitySelector": "friendlyName",
+        "statusSeparator": ": ",
+        "statusYear": "hidden",
+        "statusMonth": "short",
+        "statusDay": "numeric",
+        "statusHourCycle": "default",
+        "statusTimeFormat": "h:m",
+        "enableGlobalContextStore": false
     }
 ]
