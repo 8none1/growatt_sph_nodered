@@ -61,7 +61,7 @@ The SPH inverter supports registers:
 # Automation
 
 ## Node Red
-An example flow which uses the node-red-contrib-modbus module https://github.com/biancoroyal/node-red-contrib-modbus is available in this repo.
+An example flow which uses the [node-red-contrib-modbus](https://github.com/biancoroyal/node-red-contrib-modbus) module is available in this repo.
 
 There are a few different functions which process the Modbus registers and turn them in to something useful.  This are then stuck in a JSON object and sent to MQTT for you to do what you like with.
 I will include some examples for Home Assistant and Telegraf so that you can process and graph this data in, for example, InfluxDB.
