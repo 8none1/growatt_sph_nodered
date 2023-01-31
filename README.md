@@ -1,4 +1,4 @@
-# Growatt SPH 3-6k TL BL UP 
+# Growatt SPH 3-6kW TL BL UP 
 
 I've got two 6kW Growatt SPH inverters, one of which has two Growatt 6.5kW batteries connected.  I want to get access to the data to use in my own automations and for logging and graphing.
 This is a work in progress.
