@@ -79,4 +79,8 @@ See the included [registers.md](registers.md) file for a list of useful register
 
 A list of the registers available for the inverter is included in this repo in a PDF. There doesn't seem to be an official source of this information from Growatt, so caveat emptor.
 
+I wrote a little about how I am leveraging InfluxDB here: https://www.whizzy.org/2023-02-18-using-influx-to-gain-power-insights/
+
+![image](https://user-images.githubusercontent.com/6552931/221867276-4ca5cce5-0a8f-481d-992a-cd81d66dc830.png)
+
 
