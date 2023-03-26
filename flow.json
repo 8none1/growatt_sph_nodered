@@ -33,7 +33,8 @@
         "y": 140,
         "wires": [
             [
-                "9d16b630b54d739c"
+                "9d16b630b54d739c",
+                "697ab6c025c018a4"
             ],
             []
         ]
@@ -65,7 +66,8 @@
         "y": 200,
         "wires": [
             [
-                "c6680a64aadfb373"
+                "c6680a64aadfb373",
+                "697ab6c025c018a4"
             ],
             []
         ]
@@ -560,7 +562,7 @@
         "type": "function",
         "z": "f0197a95.05059",
         "name": "Time Difference",
-        "func": "const today = new Date();\n\nvar year = today.getFullYear();\nvar month = today.getMonth() + 1;\nvar day = today.getDate();\nvar hour = today.getHours();\nvar min = today.getMinutes();\nvar sec = today.getSeconds();\nvar dow = today.getDay();\n\nvar inverterYear = msg.payload[0];\nvar inverterMonth = msg.payload[1] - 1; // Sigh.  \"Make it look like Java\"\nvar inverterDay = msg.payload[2];\nvar inverterHour = msg.payload[3];\nvar inverterMin = msg.payload[4];\nvar inverterSec = msg.payload[5];\nvar inverterDow = msg.payload[6];\n\nvar inverterDate = new Date(Date.UTC(inverterYear, inverterMonth, inverterDay, inverterHour, inverterMin, inverterSec))\nvar diff = Math.abs(inverterDate.getTime() - today.getTime()) / 1000;\nvar timeArray = [];\n\nif (diff > 150) { // More than 2.5 mins out\n    timeArray = [year, month, day, hour, min, sec];\n}\n\nvar new_msg = {}\nnew_msg['inverterDate'] = inverterDate;\nnew_msg['sysDate'] = today;\nnew_msg['diff'] = diff;\n\nif (Array.isArray(timeArray) && timeArray.length) {\n    new_msg['payload'] = timeArray;\n} else {\n    new_msg['payload'] = null;\n}\n\nreturn new_msg;\n\n",
+        "func": "const utcdate = new Date().toISOString();\nconst today = new Date(utcdate);\n\nvar year = today.getFullYear();\nvar month = today.getMonth() + 1;\nvar day = today.getDate();\nvar hour = today.getHours();\nvar min = today.getMinutes();\nvar sec = today.getSeconds();\nvar dow = today.getDay();\n\nvar inverterYear = msg.payload[0];\nvar inverterMonth = msg.payload[1] - 1; // Sigh.  \"Make it look like Java\"\nvar inverterDay = msg.payload[2];\nvar inverterHour = msg.payload[3];\nvar inverterMin = msg.payload[4];\nvar inverterSec = msg.payload[5];\nvar inverterDow = msg.payload[6];\n\nvar inverterDate = new Date(Date.UTC(inverterYear, inverterMonth, inverterDay, inverterHour, inverterMin, inverterSec))\nvar diff = Math.abs(inverterDate.getTime() - today.getTime()) / 1000;\nvar timeArray = [];\n\nif (diff > 30) { // More than 30 secs out\n    var year = today.getFullYear()-2000; // Inverter requires year to be two digits start at 2000.\n    var month = today.getMonth() + 1;\n    var day = today.getDate();\n    var hour = today.getHours();\n    var min = today.getMinutes();\n    var sec = today.getSeconds();\n    timeArray = [year, month, day, hour, min, sec];\n}\n\nvar new_msg = {}\nnew_msg['inverterDate'] = inverterDate;\nnew_msg['sysDate'] = today;\nnew_msg['diff'] = diff;\n\nif (Array.isArray(timeArray) && timeArray.length) {\n    new_msg['payload'] = timeArray;\n} else {\n    new_msg['payload'] = null;\n}\n\nreturn new_msg;\n\n",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -804,7 +806,9 @@
         "x": 770,
         "y": 760,
         "wires": [
-            [],
+            [
+                "2af1b3ed67da7854"
+            ],
             [
                 "2af1b3ed67da7854"
             ]
@@ -850,7 +854,6 @@
         "y": 1000,
         "wires": [
             [
-                "d44bc77b0995cae0",
                 "f0132b11bb683a22"
             ]
         ]
@@ -868,7 +871,7 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 900,
+        "x": 980,
         "y": 1000,
         "wires": []
     },
@@ -912,8 +915,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 780,
-        "y": 1120,
+        "x": 800,
+        "y": 1000,
         "wires": [
             [
                 "d44bc77b0995cae0"
@@ -1121,6 +1124,148 @@
                 "1b4e5d501bd3f961"
             ]
         ]
+    },
+    {
+        "id": "276ee0fef3513eca",
+        "type": "inject",
+        "z": "f0197a95.05059",
+        "name": "Do",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "0",
+        "payloadType": "str",
+        "x": 150,
+        "y": 860,
+        "wires": [
+            [
+                "b2836d193de6b173"
+            ]
+        ]
+    },
+    {
+        "id": "b2836d193de6b173",
+        "type": "modbus-getter",
+        "z": "f0197a95.05059",
+        "name": "Read",
+        "showStatusActivities": false,
+        "showErrors": false,
+        "showWarnings": true,
+        "logIOActivities": false,
+        "unitid": "1",
+        "dataType": "HoldingRegister",
+        "adr": "1038",
+        "quantity": "1",
+        "server": "40f20c7f.13a934",
+        "useIOFile": false,
+        "ioFile": "",
+        "useIOForPayload": false,
+        "emptyMsgOnFail": false,
+        "keepMsgProperties": false,
+        "delayOnStart": false,
+        "startDelayTime": "",
+        "x": 310,
+        "y": 860,
+        "wires": [
+            [
+                "e7497766e41db9b0"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "e7497766e41db9b0",
+        "type": "debug",
+        "z": "f0197a95.05059",
+        "name": "debug 28",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 460,
+        "y": 860,
+        "wires": []
+    },
+    {
+        "id": "f1c776e37e70f898",
+        "type": "modbus-write",
+        "z": "f0197a95.05059",
+        "d": true,
+        "name": "",
+        "showStatusActivities": false,
+        "showErrors": false,
+        "showWarnings": true,
+        "unitid": "1",
+        "dataType": "HoldingRegister",
+        "adr": "1038",
+        "quantity": "1",
+        "server": "40f20c7f.13a934",
+        "emptyMsgOnFail": false,
+        "keepMsgProperties": false,
+        "delayOnStart": false,
+        "startDelayTime": "",
+        "x": 320,
+        "y": 920,
+        "wires": [
+            [
+                "e7497766e41db9b0"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "3751d7cc6e455cd8",
+        "type": "inject",
+        "z": "f0197a95.05059",
+        "name": "Do",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "100",
+        "payloadType": "str",
+        "x": 150,
+        "y": 920,
+        "wires": [
+            [
+                "f1c776e37e70f898"
+            ]
+        ]
+    },
+    {
+        "id": "697ab6c025c018a4",
+        "type": "debug",
+        "z": "f0197a95.05059",
+        "d": true,
+        "name": "debug 29",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 860,
+        "y": 60,
+        "wires": []
     },
     {
         "id": "40f20c7f.13a934",
