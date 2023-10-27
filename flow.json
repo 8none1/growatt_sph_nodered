@@ -33,8 +33,7 @@
         "y": 140,
         "wires": [
             [
-                "9d16b630b54d739c",
-                "697ab6c025c018a4"
+                "9d16b630b54d739c"
             ],
             []
         ]
@@ -66,8 +65,7 @@
         "y": 200,
         "wires": [
             [
-                "c6680a64aadfb373",
-                "697ab6c025c018a4"
+                "c6680a64aadfb373"
             ],
             []
         ]
@@ -86,7 +84,7 @@
         "dataType": "InputRegister",
         "adr": "0",
         "quantity": "124",
-        "rate": "30",
+        "rate": "10",
         "rateUnit": "s",
         "delayOnStart": false,
         "startDelayTime": "",
@@ -118,7 +116,7 @@
         "dataType": "InputRegister",
         "adr": "1000",
         "quantity": "124",
-        "rate": "30",
+        "rate": "10",
         "rateUnit": "s",
         "delayOnStart": false,
         "startDelayTime": "",
@@ -141,7 +139,7 @@
         "type": "function",
         "z": "f0197a95.05059",
         "name": "Process Input Regs 0-124",
-        "func": "\nfunction readDoubleReg(r1, multiplier = 1) {\n    // Reads register r1 AND r1+1 from the msg.payload\n    // Returns a rounded number \n    var value = (msg.payload[r1] << 16 | msg.payload[r1 + 1]);\n    value = value * multiplier;\n    return Math.trunc(value);\n}\n\nfunction round(num) {\n    return Math.round(num * 10) / 10;\n}\n\nvar newMsg = msg;\nvar newPayload = {};\n\n// Inverter status\n// Seems to be 6 at night\nnewPayload['inverterStatus'] = msg.payload[0];\n\n// PV Total Power\nnewPayload['pvPowerTotal'] = readDoubleReg(1, 0.1);\n// PV1\nnewPayload['pv1Voltage'] = round(msg.payload[3] * 0.1);\nnewPayload['pv1Current'] = round(msg.payload[4] * 0.1);\nnewPayload['pv1Power'] = readDoubleReg(5, 0.1);\n\n// PV2\nnewPayload['pv2Voltage'] = round(msg.payload[7] * 0.1);\nnewPayload['pv2Current'] = round(msg.payload[8] * 0.1);\nnewPayload['pv2Power']   = readDoubleReg(9, 0.1);\n\n// \"PAC\" seems to be PV power output plus battery\nnewPayload['pvBattPower'] = readDoubleReg(35,0.1);\n\n// General grid conditons\nnewPayload['gridFreq']          = round(msg.payload[37] * 0.01);\nnewPayload['gridVolt']          = round(msg.payload[38] * 0.1);\nnewPayload['pvOutputCurrent'] = round(msg.payload[39] * 0.1); // This seems to be PV output current, not grid\nnewPayload['pvOutputWattsVA'] = readDoubleReg(40,0.1);\n\n// Temperatures\nnewPayload['inverterTemperature'] = msg.payload[93] * 0.1;\nnewPayload['IPMTemperature']      = round(msg.payload[94] * 0.1); // What is an IPM?\nnewPayload['boostTemperature']    = round(msg.payload[95] * 0.1);\n\n// Power related\nnewPayload['inverterPowerFactorNow'] = msg.payload[100]; // Says 0 -> 20000 which is odd.  Surely max PF is 1?\nnewPayload['realOutputPowerPercent'] = msg.payload[101];\nnewPayload['OPFullWatt'] = readDoubleReg(102,0.1); // Seems to be nothing?\n\n// Fault codes\nnewPayload['InverterFaultCode'] = msg.payload[105];\nnewPayload['FaultBitCode'] = readDoubleReg(106);\nnewPayload['WarningBitCode'] = readDoubleReg(110);\n\n// Battery\nnewPayload['ACChargePower']      = readDoubleReg(116, 0.1); // This seems to be something like how much power is being used to run the battery itself\n\n// Current priority\nnewPayload['CurrentPriority'] = msg.payload[118];\n// 0 = Load, 1 = Battery, 2 = Grid\n\nnewMsg['topic'] = \"solar/test\";\nnewMsg['registers'] = newPayload;\nreturn newMsg;\n",
+        "func": "\nfunction readDoubleReg(r1, multiplier = 1) {\n    // Reads register r1 AND r1+1 from the msg.payload\n    // Returns a rounded number \n    var value = (msg.payload[r1] << 16 | msg.payload[r1 + 1]);\n    value = value * multiplier;\n    return Math.trunc(value);\n}\n\nfunction round(num) {\n    return Math.round(num * 10) / 10;\n}\n\nvar newMsg = msg;\nvar newPayload = {};\n\n// Inverter status\n// Seems to be 6 at night\nnewPayload['inverterStatus'] = msg.payload[0];\n\n// PV Total Power\nnewPayload['pvPowerTotal'] = readDoubleReg(1, 0.1);\n// PV1\nnewPayload['pv1Voltage'] = round(msg.payload[3] * 0.1);\nnewPayload['pv1Current'] = round(msg.payload[4] * 0.1);\nnewPayload['pv1Power'] = readDoubleReg(5, 0.1);\n\n// PV2\nnewPayload['pv2Voltage'] = round(msg.payload[7] * 0.1);\nnewPayload['pv2Current'] = round(msg.payload[8] * 0.1);\nnewPayload['pv2Power'] = readDoubleReg(9, 0.1);\n\n// \"PAC\" seems to be PV power output plus battery\nnewPayload['pvBattPower'] = readDoubleReg(35, 0.1);\n\n// General grid conditons\nnewPayload['gridFreq'] = round(msg.payload[37] * 0.01);\nnewPayload['gridVolt'] = round(msg.payload[38] * 0.1);\nnewPayload['pvOutputCurrent'] = round(msg.payload[39] * 0.1); // This seems to be PV output current, not grid\nnewPayload['pvOutputWattsVA'] = readDoubleReg(40, 0.1);\n\n// Temperatures\nnewPayload['inverterTemperature'] = msg.payload[93] * 0.1;\nnewPayload['IPMTemperature'] = round(msg.payload[94] * 0.1); // What is an IPM?\nnewPayload['boostTemperature'] = round(msg.payload[95] * 0.1);\n\n// Power related\nnewPayload['inverterPowerFactorNow'] = msg.payload[100]; // Says 0 -> 20000 which is odd.  Surely max PF is 1?\nnewPayload['realOutputPowerPercent'] = msg.payload[101];\nnewPayload['OPFullWatt'] = readDoubleReg(102, 0.1); // Seems to be nothing?\n\n// Fault codes\nnewPayload['InverterFaultCode'] = msg.payload[105];\nnewPayload['FaultBitCode'] = readDoubleReg(106);\nnewPayload['WarningBitCode'] = readDoubleReg(110);\n\n// Battery\nnewPayload['ACChargePower'] = readDoubleReg(116, 0.1); // This seems to be something like how much power is being used to run the battery itself\n\n// Current priority\n//newPayload['CurrentPriority'] = msg.payload[118];\n// 0 = Load, 1 = Battery, 2 = Grid\n// Wrong.  This isn't what I thought it was.\n\nnewMsg['topic'] = \"solar/test\";\nnewMsg['registers'] = newPayload;\nreturn newMsg;\n",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -178,7 +176,7 @@
         "type": "function",
         "z": "f0197a95.05059",
         "name": "Process Input Regs 1000-1124",
-        "func": "// The read from modbus should start at 1000 and read 124 (or is it 125) registers\n// so register 1000 is array pos zero, 1011 is array position 11, etc.\n// These registers are for an SPH style Growatt inverter.\n\nfunction readDoubleReg(r1, multiplier=1) {\n    // Reads register r1 AND r1+1 from the msg.payload\n    // Returns a rounded number \n    var value = (msg.payload[r1] << 16 | msg.payload[r1+1]);\n    value = value * multiplier;\n    return Math.trunc(value);\n}\n\nfunction round(num) {\n    return Math.round(num * 10) / 10;\n}\n\nvar newMsg = msg;\nvar newPayload = {};\n\n// Work Mode\nnewPayload['systemWorkMode'] = msg.payload[0];\n\nnewPayload['dischargePower'] = readDoubleReg(9, 0.1);\nnewPayload['chargePower'] = readDoubleReg(11, 0.1);\nnewPayload['battVoltage'] = round(msg.payload[13] * 0.1);\nnewPayload['battSOC'] = msg.payload[14];\n\n// PAC power - I think this is AC power going from grid to load\n// R, S, T are each of three phase.  Use R for single phase.\n// Or just use total\n\n//newPayload['pacToUserR']     = readDoubleReg(15, 0.1);\n//newPayload['pacToUserS']     = readDoubleReg(17, 0.1);\n//newPayload['pacToUserT']     = readDoubleReg(19, 0.1);\nnewPayload['gridImportPowerTotal'] = readDoubleReg(21, 0.1); // was pacToUserTotal\n\n//newPayload['pacToGridR'] = readDoubleReg(23, 0.1);\n//newPayload['pacToGridS'] = readDoubleReg(25, 0.1);\n//newPayload['pacToGridT'] = readDoubleReg(27, 0.1);\nnewPayload['gridExportPowerTotal'] = readDoubleReg(29, 0.1); // was pacToGridTotal\n\n//newPayload['pLocalLoadR'] = readDoubleReg(31, 0.1);\n//newPayload['pLocalLoadS'] = readDoubleReg(33, 0.1);\n//newPayload['pLocalLoadT'] = readDoubleReg(35, 0.1);\nnewPayload['pLocalLoadTotal'] = readDoubleReg(37, 0.1);\n\nnewPayload['battTemperature']     = msg.payload[40];\n\n// EPS/UPS information\nnewPayload['epsFreq'] = msg.payload[67];\nnewPayload['epsVolt'] = round(msg.payload[68] / 10);\nnewPayload['epsCurrent'] = msg.payload[69];\nnewPayload['epsPower'] = readDoubleReg(70, 0.1);\nnewPayload['epsLoadPercent'] = msg.payload[80];\nnewPayload['epsPowerFactor'] = msg.payload[81];\n\n// BMS Info\nnewPayload['bmsStatus'] = msg.payload[83];\n// Bit map for ^\n// 0 & 1 - 00 soft start, 01 stand by, 10 charge, 11 discharge\n// 2 - errors?\n// 3 - cell balance 0 = unbalance, 1 = balance\n// 4 - sleep status 0 disable 1 enable\n// 5 output discharge - 0 disable 1 enable\n// 6 output charge\n// 7 battery terminal - 0 connected, 1 disconnected\n// 8 & 9 operation mode, 00 - stand alone, 01 - parallel, 10 - parallel preperation\n// 10 & 11 SP status - 00 none, 01 standby, 10 charge, 11 discharge\nnewPayload['bmsError'] = msg.payload[85];\nnewPayload['bmsSOC'] = msg.payload[86];\nnewPayload['bmsDeltaV'] = msg.payload[94];\nnewPayload['bmsCycleCount'] = msg.payload[95];\nnewPayload['bmsSOH'] = msg.payload[96];\n// BMS Cell state\nfor (let i = 108; i <=123; i++ ) {\n    var cell = \"cellVoltage\" + (i-107);\n    newPayload[cell] = msg.payload[i];\n}\n\nnewMsg['topic'] = \"solar/test\";\nnewMsg['registers'] = newPayload;\nreturn newMsg;\n",
+        "func": "// The read from modbus should start at 1000 and read 124 (or is it 125) registers\n// so register 1000 is array pos zero, 1011 is array position 11, etc.\n// These registers are for an SPH style Growatt inverter.\n\nfunction readDoubleReg(r1, multiplier=1) {\n    // Reads register r1 AND r1+1 from the msg.payload\n    // Returns a rounded number \n    var value = (msg.payload[r1] << 16 | msg.payload[r1+1]);\n    value = value * multiplier;\n    return Math.trunc(value);\n}\n\nfunction round(num) {\n    return Math.round(num * 10) / 10;\n}\n\nvar newMsg = msg;\nvar newPayload = {};\n\n// Work Mode\nnewPayload['systemWorkMode'] = msg.payload[0];\nnewPayload['dischargePower'] = readDoubleReg(9, 0.1);\nnewPayload['chargePower'] = readDoubleReg(11, 0.1);\nnewPayload['battVoltage'] = round(msg.payload[13] * 0.1);\nnewPayload['battSOC'] = msg.payload[14];\n\n// PAC power - I think this is AC power going from grid to load\n// R, S, T are each of three phase.  Use R for single phase.\n// Or just use total\n\n//newPayload['pacToUserR']     = readDoubleReg(15, 0.1);\n//newPayload['pacToUserS']     = readDoubleReg(17, 0.1);\n//newPayload['pacToUserT']     = readDoubleReg(19, 0.1);\nnewPayload['gridImportPowerTotal'] = readDoubleReg(21, 0.1); // was pacToUserTotal\n\n//newPayload['pacToGridR'] = readDoubleReg(23, 0.1);\n//newPayload['pacToGridS'] = readDoubleReg(25, 0.1);\n//newPayload['pacToGridT'] = readDoubleReg(27, 0.1);\nnewPayload['gridExportPowerTotal'] = readDoubleReg(29, 0.1); // was pacToGridTotal\n\n//newPayload['pLocalLoadR'] = readDoubleReg(31, 0.1);\n//newPayload['pLocalLoadS'] = readDoubleReg(33, 0.1);\n//newPayload['pLocalLoadT'] = readDoubleReg(35, 0.1);\nnewPayload['pLocalLoadTotal'] = readDoubleReg(37, 0.1);\n\nnewPayload['battTemperature']     = msg.payload[40];\n\n// EPS/UPS information\nnewPayload['epsFreq'] = msg.payload[67];\nnewPayload['epsVolt'] = round(msg.payload[68] / 10);\nnewPayload['epsCurrent'] = msg.payload[69];\nnewPayload['epsPower'] = readDoubleReg(70, 0.1);\nnewPayload['epsLoadPercent'] = msg.payload[80];\nnewPayload['epsPowerFactor'] = msg.payload[81];\n\n// BMS Info\nnewPayload['bmsStatus'] = msg.payload[83];\n// Bit map for ^\n// 0 & 1 - 00 soft start, 01 stand by, 10 charge, 11 discharge\n// 2 - errors?\n// 3 - cell balance 0 = unbalance, 1 = balance\n// 4 - sleep status 0 disable 1 enable\n// 5 output discharge - 0 disable 1 enable\n// 6 output charge\n// 7 battery terminal - 0 connected, 1 disconnected\n// 8 & 9 operation mode, 00 - stand alone, 01 - parallel, 10 - parallel preperation\n// 10 & 11 SP status - 00 none, 01 standby, 10 charge, 11 discharge\nnewPayload['bmsError'] = msg.payload[85];\nnewPayload['bmsSOC'] = msg.payload[86];\nnewPayload['bmsDeltaV'] = msg.payload[94];\nnewPayload['bmsCycleCount'] = msg.payload[95];\nnewPayload['bmsSOH'] = msg.payload[96];\n// BMS Cell state\nfor (let i = 108; i <=123; i++ ) {\n    var cell = \"cellVoltage\" + (i-107);\n    newPayload[cell] = msg.payload[i];\n}\n\nnewMsg['topic'] = \"solar/test\";\nnewMsg['registers'] = newPayload;\nreturn newMsg;\n",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -275,28 +273,9 @@
         "y": 340,
         "wires": [
             [
-                "50ccfd2af4969bcb",
-                "54fd29c55cb2f15d"
+                "50ccfd2af4969bcb"
             ]
         ]
-    },
-    {
-        "id": "54fd29c55cb2f15d",
-        "type": "debug",
-        "z": "f0197a95.05059",
-        "d": true,
-        "name": "debug 18",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 1300,
-        "y": 460,
-        "wires": []
     },
     {
         "id": "f8e902eda5c9680c",
@@ -376,7 +355,7 @@
         "dataType": "InputRegister",
         "adr": "0",
         "quantity": "124",
-        "rate": "30",
+        "rate": "10",
         "rateUnit": "s",
         "delayOnStart": false,
         "startDelayTime": "",
@@ -408,7 +387,7 @@
         "dataType": "InputRegister",
         "adr": "1000",
         "quantity": "125",
-        "rate": "30",
+        "rate": "10",
         "rateUnit": "s",
         "delayOnStart": false,
         "startDelayTime": "",
@@ -431,7 +410,7 @@
         "type": "function",
         "z": "f0197a95.05059",
         "name": "Process Input Regs 1000-1124",
-        "func": "// The read from modbus should start at 1000 and read 124 (or is it 125) registers\n// so register 1000 is array pos zero, 1011 is array position 11, etc.\n// These registers are for an SPH style Growatt inverter.\n\nfunction readDoubleReg(r1, multiplier=1) {\n    // Reads register r1 AND r1+1 from the msg.payload\n    // Returns a rounded number \n    var value = (msg.payload[r1] << 16 | msg.payload[r1+1]);\n    value = value * multiplier;\n    return Math.trunc(value);\n}\n\nfunction round(num) {\n    return Math.round(num * 10) / 10;\n}\n\nvar newMsg = msg;\nvar newPayload = {};\n\n// Work Mode\nnewPayload['systemWorkMode'] = msg.payload[0];\n\n//newPayload['dischargePower'] = readDoubleReg(9, 0.1);\n//newPayload['chargePower'] = readDoubleReg(11, 0.1);\n//newPayload['battVoltage'] = round(msg.payload[13] * 0.1);\n//newPayload['battSOC'] = msg.payload[14];\n\n// PAC power - I think this is AC power going from grid to load\n// R, S, T are each of three phase.  Use R for single phase.\n// Or just use total\n\n//newPayload['pacToUserR']     = readDoubleReg(15, 0.1);\n//newPayload['pacToUserS']     = readDoubleReg(17, 0.1);\n//newPayload['pacToUserT']     = readDoubleReg(19, 0.1);\nnewPayload['gridImportPowerTotal'] = readDoubleReg(21, 0.1); // was pacToUserTotal\n\n//newPayload['pacToGridR'] = readDoubleReg(23, 0.1);\n//newPayload['pacToGridS'] = readDoubleReg(25, 0.1);\n//newPayload['pacToGridT'] = readDoubleReg(27, 0.1);\nnewPayload['gridExportPowerTotal'] = readDoubleReg(29, 0.1); // was pacToGridTotal\n\n//newPayload['pLocalLoadR'] = readDoubleReg(31, 0.1);\n//newPayload['pLocalLoadS'] = readDoubleReg(33, 0.1);\n//newPayload['pLocalLoadT'] = readDoubleReg(35, 0.1);\nnewPayload['pLocalLoadTotal'] = readDoubleReg(37, 0.1);\n\n//newPayload['battTemperature']     = msg.payload[40];\n\n// EPS/UPS information\n// newPayload['epsFreq'] = msg.payload[67];\n// newPayload['epsVolt'] = round(msg.payload[68] / 10);\n// newPayload['epsCurrent'] = msg.payload[69];\n// newPayload['epsPower'] = readDoubleReg(70, 0.1);\n// newPayload['epsLoadPercent'] = msg.payload[80];\n// newPayload['epsPowerFactor'] = msg.payload[81];\n\n// BMS Info\n//newPayload['bmsStatus'] = msg.payload[83];\n// Bit map for ^\n// 0 & 1 - 00 soft start, 01 stand by, 10 charge, 11 discharge\n// 2 - errors?\n// 3 - cell balance 0 = unbalance, 1 = balance\n// 4 - sleep status 0 disable 1 enable\n// 5 output discharge - 0 disable 1 enable\n// 6 output charge\n// 7 battery terminal - 0 connected, 1 disconnected\n// 8 & 9 operation mode, 00 - stand alone, 01 - parallel, 10 - parallel preperation\n// 10 & 11 SP status - 00 none, 01 standby, 10 charge, 11 discharge\n// newPayload['bmsError'] = msg.payload[85];\n// newPayload['bmsSOC'] = msg.payload[86];\n// newPayload['bmsDeltaV'] = msg.payload[94];\n// newPayload['bmsCycleCount'] = msg.payload[95];\n// newPayload['bmsSOH'] = msg.payload[96];\n// BMS Cell state\n// for (let i = 108; i <=123; i++ ) {\n//     var cell = \"cellVoltage\" + (i-107);\n//     newPayload[cell] = msg.payload[i];\n// }\n\nnewMsg['topic'] = \"solar/test\";\nnewMsg['registers'] = newPayload;\nreturn newMsg;\n",
+        "func": "// The read from modbus should start at 1000 and read 124 (or is it 125) registers\n// so register 1000 is array pos zero, 1011 is array position 11, etc.\n// These registers are for an SPH style Growatt inverter.\n\nfunction readDoubleReg(r1, multiplier=1) {\n    // Reads register r1 AND r1+1 from the msg.payload\n    // Returns a rounded number \n    var value = (msg.payload[r1] << 16 | msg.payload[r1+1]);\n    value = value * multiplier;\n    return Math.trunc(value);\n}\n\nfunction round(num) {\n    return Math.round(num * 10) / 10;\n}\n\nvar newMsg = msg;\nvar newPayload = {};\n\n\n// Work Mode\nnewPayload['systemWorkMode'] = msg.payload[0];\n\n//newPayload['dischargePower'] = readDoubleReg(9, 0.1);\n//newPayload['chargePower'] = readDoubleReg(11, 0.1);\n//newPayload['battVoltage'] = round(msg.payload[13] * 0.1);\n//newPayload['battSOC'] = msg.payload[14];\n\n// PAC power - I think this is AC power going from grid to load\n// R, S, T are each of three phase.  Use R for single phase.\n// Or just use total\n\n//newPayload['pacToUserR']     = readDoubleReg(15, 0.1);\n//newPayload['pacToUserS']     = readDoubleReg(17, 0.1);\n//newPayload['pacToUserT']     = readDoubleReg(19, 0.1);\nnewPayload['gridImportPowerTotal'] = readDoubleReg(21, 0.1); // was pacToUserTotal\n\n//newPayload['pacToGridR'] = readDoubleReg(23, 0.1);\n//newPayload['pacToGridS'] = readDoubleReg(25, 0.1);\n//newPayload['pacToGridT'] = readDoubleReg(27, 0.1);\nnewPayload['gridExportPowerTotal'] = readDoubleReg(29, 0.1); // was pacToGridTotal\n\n//newPayload['pLocalLoadR'] = readDoubleReg(31, 0.1);\n//newPayload['pLocalLoadS'] = readDoubleReg(33, 0.1);\n//newPayload['pLocalLoadT'] = readDoubleReg(35, 0.1);\nnewPayload['pLocalLoadTotal'] = readDoubleReg(37, 0.1);\n\n//newPayload['battTemperature']     = msg.payload[40];\n\n// EPS/UPS information\n// newPayload['epsFreq'] = msg.payload[67];\n// newPayload['epsVolt'] = round(msg.payload[68] / 10);\n// newPayload['epsCurrent'] = msg.payload[69];\n// newPayload['epsPower'] = readDoubleReg(70, 0.1);\n// newPayload['epsLoadPercent'] = msg.payload[80];\n// newPayload['epsPowerFactor'] = msg.payload[81];\n\n// BMS Info\n//newPayload['bmsStatus'] = msg.payload[83];\n// Bit map for ^\n// 0 & 1 - 00 soft start, 01 stand by, 10 charge, 11 discharge\n// 2 - errors?\n// 3 - cell balance 0 = unbalance, 1 = balance\n// 4 - sleep status 0 disable 1 enable\n// 5 output discharge - 0 disable 1 enable\n// 6 output charge\n// 7 battery terminal - 0 connected, 1 disconnected\n// 8 & 9 operation mode, 00 - stand alone, 01 - parallel, 10 - parallel preperation\n// 10 & 11 SP status - 00 none, 01 standby, 10 charge, 11 discharge\n// newPayload['bmsError'] = msg.payload[85];\n// newPayload['bmsSOC'] = msg.payload[86];\n// newPayload['bmsDeltaV'] = msg.payload[94];\n// newPayload['bmsCycleCount'] = msg.payload[95];\n// newPayload['bmsSOH'] = msg.payload[96];\n// BMS Cell state\n// for (let i = 108; i <=123; i++ ) {\n//     var cell = \"cellVoltage\" + (i-107);\n//     newPayload[cell] = msg.payload[i];\n// }\n\nnewMsg['topic'] = \"solar/test\";\nnewMsg['registers'] = newPayload;\nreturn newMsg;\n",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -533,397 +512,6 @@
         ]
     },
     {
-        "id": "560a91cf64a8324f",
-        "type": "inject",
-        "z": "f0197a95.05059",
-        "name": "Check time",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "3600",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "0",
-        "payloadType": "str",
-        "x": 110,
-        "y": 700,
-        "wires": [
-            [
-                "5b8651d148d5d586"
-            ]
-        ]
-    },
-    {
-        "id": "76c4ab9d4eb9fd0f",
-        "type": "function",
-        "z": "f0197a95.05059",
-        "name": "Time Difference",
-        "func": "const utcdate = new Date().toISOString();\nconst today = new Date(utcdate);\n\nvar year = today.getFullYear();\nvar month = today.getMonth() + 1;\nvar day = today.getDate();\nvar hour = today.getHours();\nvar min = today.getMinutes();\nvar sec = today.getSeconds();\nvar dow = today.getDay();\n\nvar inverterYear = msg.payload[0];\nvar inverterMonth = msg.payload[1] - 1; // Sigh.  \"Make it look like Java\"\nvar inverterDay = msg.payload[2];\nvar inverterHour = msg.payload[3];\nvar inverterMin = msg.payload[4];\nvar inverterSec = msg.payload[5];\nvar inverterDow = msg.payload[6];\n\nvar inverterDate = new Date(Date.UTC(inverterYear, inverterMonth, inverterDay, inverterHour, inverterMin, inverterSec))\nvar diff = Math.abs(inverterDate.getTime() - today.getTime()) / 1000;\nvar timeArray = [];\n\nif (diff > 30) { // More than 30 secs out\n    var year = today.getFullYear()-2000; // Inverter requires year to be two digits start at 2000.\n    var month = today.getMonth() + 1;\n    var day = today.getDate();\n    var hour = today.getHours();\n    var min = today.getMinutes();\n    var sec = today.getSeconds();\n    timeArray = [year, month, day, hour, min, sec];\n}\n\nvar new_msg = {}\nnew_msg['inverterDate'] = inverterDate;\nnew_msg['sysDate'] = today;\nnew_msg['diff'] = diff;\n\nif (Array.isArray(timeArray) && timeArray.length) {\n    new_msg['payload'] = timeArray;\n} else {\n    new_msg['payload'] = null;\n}\n\nreturn new_msg;\n\n",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 440,
-        "y": 700,
-        "wires": [
-            [
-                "92a776d5b4f4ad83"
-            ]
-        ]
-    },
-    {
-        "id": "218598319ba7ee35",
-        "type": "debug",
-        "z": "f0197a95.05059",
-        "name": "debug 19",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 960,
-        "y": 700,
-        "wires": []
-    },
-    {
-        "id": "5b8651d148d5d586",
-        "type": "modbus-getter",
-        "z": "f0197a95.05059",
-        "name": "Get Time",
-        "showStatusActivities": false,
-        "showErrors": false,
-        "showWarnings": true,
-        "logIOActivities": false,
-        "unitid": "1",
-        "dataType": "HoldingRegister",
-        "adr": "45",
-        "quantity": "7",
-        "server": "40f20c7f.13a934",
-        "useIOFile": false,
-        "ioFile": "",
-        "useIOForPayload": false,
-        "emptyMsgOnFail": false,
-        "keepMsgProperties": false,
-        "delayOnStart": false,
-        "startDelayTime": "",
-        "x": 260,
-        "y": 700,
-        "wires": [
-            [
-                "76c4ab9d4eb9fd0f"
-            ],
-            []
-        ]
-    },
-    {
-        "id": "92a776d5b4f4ad83",
-        "type": "switch",
-        "z": "f0197a95.05059",
-        "name": "",
-        "property": "payload",
-        "propertyType": "msg",
-        "rules": [
-            {
-                "t": "nnull"
-            }
-        ],
-        "checkall": "true",
-        "repair": false,
-        "outputs": 1,
-        "x": 610,
-        "y": 700,
-        "wires": [
-            [
-                "e1e08134b9df29e7"
-            ]
-        ]
-    },
-    {
-        "id": "e1e08134b9df29e7",
-        "type": "modbus-write",
-        "z": "f0197a95.05059",
-        "name": "Write Time",
-        "showStatusActivities": false,
-        "showErrors": false,
-        "showWarnings": true,
-        "unitid": "1",
-        "dataType": "MHoldingRegisters",
-        "adr": "45",
-        "quantity": "6",
-        "server": "40f20c7f.13a934",
-        "emptyMsgOnFail": false,
-        "keepMsgProperties": false,
-        "delayOnStart": false,
-        "startDelayTime": "",
-        "x": 770,
-        "y": 700,
-        "wires": [
-            [],
-            [
-                "218598319ba7ee35"
-            ]
-        ]
-    },
-    {
-        "id": "2fa9026deb22fabe",
-        "type": "inject",
-        "z": "f0197a95.05059",
-        "name": "Check time",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "3600",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "0",
-        "payloadType": "str",
-        "x": 110,
-        "y": 760,
-        "wires": [
-            [
-                "f9b893c051e5aa95"
-            ]
-        ]
-    },
-    {
-        "id": "f73775560dc4f584",
-        "type": "function",
-        "z": "f0197a95.05059",
-        "name": "Time Difference",
-        "func": "const utcdate = new Date().toISOString();\nconst today = new Date(utcdate);\n\nvar year = today.getFullYear();\nvar month = today.getMonth() + 1;\nvar day = today.getDate();\nvar hour = today.getHours();\nvar min = today.getMinutes();\nvar sec = today.getSeconds();\nvar dow = today.getDay();\n\nvar inverterYear = msg.payload[0];\nvar inverterMonth = msg.payload[1] - 1; // Sigh.  \"Make it look like Java\"\nvar inverterDay = msg.payload[2];\nvar inverterHour = msg.payload[3];\nvar inverterMin = msg.payload[4];\nvar inverterSec = msg.payload[5];\nvar inverterDow = msg.payload[6];\n\nvar inverterDate = new Date(Date.UTC(inverterYear, inverterMonth, inverterDay, inverterHour, inverterMin, inverterSec))\nvar diff = Math.abs(inverterDate.getTime() - today.getTime()) / 1000;\nvar timeArray = [];\n\nif (diff > 30) { // More than 30 secs out\n    var year = today.getFullYear() - 2000; // Inverter requires year to be two digits start at 2000.\n    var month = today.getMonth() + 1;\n    var day = today.getDate();\n    var hour = today.getHours();\n    var min = today.getMinutes();\n    var sec = today.getSeconds();\n    timeArray = [year, month, day, hour, min, sec];\n}\n\nvar new_msg = {}\nnew_msg['inverterDate'] = inverterDate;\nnew_msg['sysDate'] = today;\nnew_msg['diff'] = diff;\n\nif (Array.isArray(timeArray) && timeArray.length) {\n    new_msg['payload'] = timeArray;\n} else {\n    new_msg['payload'] = null;\n}\n\nreturn new_msg;\n\n",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 440,
-        "y": 760,
-        "wires": [
-            [
-                "87f52814ea62fccf"
-            ]
-        ]
-    },
-    {
-        "id": "2af1b3ed67da7854",
-        "type": "debug",
-        "z": "f0197a95.05059",
-        "name": "debug 21",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 960,
-        "y": 760,
-        "wires": []
-    },
-    {
-        "id": "f9b893c051e5aa95",
-        "type": "modbus-getter",
-        "z": "f0197a95.05059",
-        "name": "Get Time",
-        "showStatusActivities": false,
-        "showErrors": false,
-        "showWarnings": true,
-        "logIOActivities": false,
-        "unitid": "1",
-        "dataType": "HoldingRegister",
-        "adr": "45",
-        "quantity": "7",
-        "server": "36ae6849979c3179",
-        "useIOFile": false,
-        "ioFile": "",
-        "useIOForPayload": false,
-        "emptyMsgOnFail": false,
-        "keepMsgProperties": false,
-        "delayOnStart": false,
-        "startDelayTime": "",
-        "x": 260,
-        "y": 760,
-        "wires": [
-            [
-                "f73775560dc4f584"
-            ],
-            []
-        ]
-    },
-    {
-        "id": "87f52814ea62fccf",
-        "type": "switch",
-        "z": "f0197a95.05059",
-        "name": "",
-        "property": "payload",
-        "propertyType": "msg",
-        "rules": [
-            {
-                "t": "nnull"
-            }
-        ],
-        "checkall": "true",
-        "repair": false,
-        "outputs": 1,
-        "x": 610,
-        "y": 760,
-        "wires": [
-            [
-                "0b712396ce9d229c"
-            ]
-        ]
-    },
-    {
-        "id": "0b712396ce9d229c",
-        "type": "modbus-write",
-        "z": "f0197a95.05059",
-        "name": "Write Time",
-        "showStatusActivities": false,
-        "showErrors": false,
-        "showWarnings": true,
-        "unitid": "1",
-        "dataType": "MHoldingRegisters",
-        "adr": "45",
-        "quantity": "6",
-        "server": "36ae6849979c3179",
-        "emptyMsgOnFail": false,
-        "keepMsgProperties": false,
-        "delayOnStart": false,
-        "startDelayTime": "",
-        "x": 770,
-        "y": 760,
-        "wires": [
-            [
-                "2af1b3ed67da7854"
-            ],
-            [
-                "2af1b3ed67da7854"
-            ]
-        ]
-    },
-    {
-        "id": "149e2a968e10c463",
-        "type": "api-current-state",
-        "z": "f0197a95.05059",
-        "name": "",
-        "server": "9b07d2455de736b9",
-        "version": 3,
-        "outputs": 1,
-        "halt_if": "",
-        "halt_if_type": "str",
-        "halt_if_compare": "is",
-        "entity_id": "sensor.energy_production_tomorrow",
-        "state_type": "str",
-        "blockInputOverrides": false,
-        "outputProperties": [
-            {
-                "property": "payload",
-                "propertyType": "msg",
-                "value": "",
-                "valueType": "entityState"
-            },
-            {
-                "property": "data",
-                "propertyType": "msg",
-                "value": "",
-                "valueType": "entity"
-            }
-        ],
-        "for": "0",
-        "forType": "num",
-        "forUnits": "minutes",
-        "override_topic": false,
-        "state_location": "payload",
-        "override_payload": "msg",
-        "entity_location": "data",
-        "override_data": "msg",
-        "x": 470,
-        "y": 1000,
-        "wires": [
-            [
-                "f0132b11bb683a22"
-            ]
-        ]
-    },
-    {
-        "id": "d44bc77b0995cae0",
-        "type": "debug",
-        "z": "f0197a95.05059",
-        "name": "debug 22",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 980,
-        "y": 1000,
-        "wires": []
-    },
-    {
-        "id": "bf5d90a7cd5f665a",
-        "type": "inject",
-        "z": "f0197a95.05059",
-        "name": "Set battery AC charge limit",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 130,
-        "y": 1000,
-        "wires": [
-            [
-                "149e2a968e10c463"
-            ]
-        ]
-    },
-    {
-        "id": "f0132b11bb683a22",
-        "type": "function",
-        "z": "f0197a95.05059",
-        "name": "function 1",
-        "func": "// The Home Assistant node pulls from the Solar\n// prediction integration for tomorrow's expected\n// solar energy production.  I then set the AC charge\n// limit so that I can try and dump as much of the\n// free energy in to the battery as possible but\n// at the same time try and maximize charging on the\n// cheap over night electricity.\n// Not sure if this will work at all, but worth a shot.\n\nvar generateTomorrow = msg.payload;\nvar batteryCapacity = 13; // kWh\nvar chargeToPercent = 100;\nvar tickOverPower = 4; // need 4kW just to get to tomorrow\nvar reservePower = 4; // Keep 4kW just in case?\n\nvar diff = (generateTomorrow / batteryCapacity) * 100;\n\nif (diff < 100) {\n  // Battery cannot be fully charged tomorrow\n  // Fill up to what should be enough to allow it\n  // to fill from solar as much as possible.\n\n  chargeToPercent = 50;\n  // Too hard to work out.  Too tired.\n  \n} else if (diff >= 100) {\n    // Tomorrow will produce more power than\n    // the battery can take, so what do we do?\n    // Try and charge enough to get through the\n    // peak rate in the morning before the sun\n    // gets up.\n    // Which is 0.8 kWh * 5 hours\n    // = 4kWh = 31%\n    chargeToPercent = 31;\n}\nmsg.payload = {};\nmsg.payload['diff'] = diff;\nmsg.payload['chargeToPercent'] = chargeToPercent;\nreturn msg;",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 800,
-        "y": 1000,
-        "wires": [
-            [
-                "d44bc77b0995cae0"
-            ]
-        ]
-    },
-    {
         "id": "65c45528710288b3",
         "type": "modbus-flex-write",
         "z": "f0197a95.05059",
@@ -1021,7 +609,7 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "payload": "0",
+        "payload": "1",
         "payloadType": "num",
         "x": 200,
         "y": 1300,
@@ -1046,7 +634,7 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "payload": "0",
+        "payload": "2",
         "payloadType": "num",
         "x": 190,
         "y": 1340,
@@ -1124,148 +712,6 @@
                 "1b4e5d501bd3f961"
             ]
         ]
-    },
-    {
-        "id": "276ee0fef3513eca",
-        "type": "inject",
-        "z": "f0197a95.05059",
-        "name": "Do",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "0",
-        "payloadType": "str",
-        "x": 150,
-        "y": 860,
-        "wires": [
-            [
-                "b2836d193de6b173"
-            ]
-        ]
-    },
-    {
-        "id": "b2836d193de6b173",
-        "type": "modbus-getter",
-        "z": "f0197a95.05059",
-        "name": "Read",
-        "showStatusActivities": false,
-        "showErrors": false,
-        "showWarnings": true,
-        "logIOActivities": false,
-        "unitid": "1",
-        "dataType": "HoldingRegister",
-        "adr": "1038",
-        "quantity": "1",
-        "server": "40f20c7f.13a934",
-        "useIOFile": false,
-        "ioFile": "",
-        "useIOForPayload": false,
-        "emptyMsgOnFail": false,
-        "keepMsgProperties": false,
-        "delayOnStart": false,
-        "startDelayTime": "",
-        "x": 310,
-        "y": 860,
-        "wires": [
-            [
-                "e7497766e41db9b0"
-            ],
-            []
-        ]
-    },
-    {
-        "id": "e7497766e41db9b0",
-        "type": "debug",
-        "z": "f0197a95.05059",
-        "name": "debug 28",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 460,
-        "y": 860,
-        "wires": []
-    },
-    {
-        "id": "f1c776e37e70f898",
-        "type": "modbus-write",
-        "z": "f0197a95.05059",
-        "d": true,
-        "name": "",
-        "showStatusActivities": false,
-        "showErrors": false,
-        "showWarnings": true,
-        "unitid": "1",
-        "dataType": "HoldingRegister",
-        "adr": "1038",
-        "quantity": "1",
-        "server": "40f20c7f.13a934",
-        "emptyMsgOnFail": false,
-        "keepMsgProperties": false,
-        "delayOnStart": false,
-        "startDelayTime": "",
-        "x": 320,
-        "y": 920,
-        "wires": [
-            [
-                "e7497766e41db9b0"
-            ],
-            []
-        ]
-    },
-    {
-        "id": "3751d7cc6e455cd8",
-        "type": "inject",
-        "z": "f0197a95.05059",
-        "name": "Do",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "100",
-        "payloadType": "str",
-        "x": 150,
-        "y": 920,
-        "wires": [
-            [
-                "f1c776e37e70f898"
-            ]
-        ]
-    },
-    {
-        "id": "697ab6c025c018a4",
-        "type": "debug",
-        "z": "f0197a95.05059",
-        "d": true,
-        "name": "debug 29",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 860,
-        "y": 60,
-        "wires": []
     },
     {
         "id": "40f20c7f.13a934",
@@ -1349,28 +795,5 @@
         "parallelUnitIdsAllowed": true,
         "showWarnings": true,
         "showLogs": true
-    },
-    {
-        "id": "9b07d2455de736b9",
-        "type": "server",
-        "name": "Home Assistant",
-        "version": 5,
-        "addon": false,
-        "rejectUnauthorizedCerts": false,
-        "ha_boolean": "y|yes|true|on|home|open",
-        "connectionDelay": true,
-        "cacheJson": true,
-        "heartbeat": false,
-        "heartbeatInterval": "30",
-        "areaSelector": "friendlyName",
-        "deviceSelector": "friendlyName",
-        "entitySelector": "friendlyName",
-        "statusSeparator": ": ",
-        "statusYear": "hidden",
-        "statusMonth": "short",
-        "statusDay": "numeric",
-        "statusHourCycle": "default",
-        "statusTimeFormat": "h:m",
-        "enableGlobalContextStore": false
     }
 ]
